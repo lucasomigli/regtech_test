@@ -1,10 +1,65 @@
-from datetime import datetime, timedelta
-import numpy as np
+from datetime import datetime
 import math
-from functools import reduce
 import json
 import argparse
 
+
+asset_classes ={
+    "abs": "CR",
+    "abs_auto": "CR",
+    "abs_consumer": "CR",
+    "abs_other": "CR",
+    "abs_sme": "CR",
+    "acceptance": "other",
+    "bill_of_exchange": "other",
+    "bond": "CR",
+    "cash": "other",
+    "cash_ratio_deposit": "other",
+    "cb_facility": "other",
+    "cb_reserve": "other",
+    "cd": "other",
+    "cmbs": "CR",
+    "commercial_paper": "other",
+    "convertible_bond": "CR",
+    "covered_bond": "CR",
+    "debt": "CR",
+    "emtn": "CR",
+    "equity": "EQ",
+    "financial_guarantee": "CR",
+    "financial_sloc": "CR",
+    "frn": "other",
+    "guarantee": "CR",
+    "index": "CR",
+    "index_linked": "CR",
+    "letter_of_credit": "CR",
+    "mbs": "CR",
+    "mtn": "CR",
+    "other": "other",
+    "performance_bond": "CR",
+    "performance_guarantee": "CR",
+    "performance_sloc": "CR",
+    "pref_share": "EQ",
+    "rmbs": "CR",
+    "rmbs_trans": "CR",
+    "share": "EQ",
+    "share_agg": "EQ",
+    "spv_mortgages": "CR",
+    "spv_other": "other",
+    "struct_note": "other",
+    "treasury": "IR",
+    "urp": "CR",
+    "warranty": "CR"
+}
+
+factor = dict(
+            IR=.005,
+            FX=.04,
+            CR=.01,
+            EQ_sigle=.32,   
+            EQ_index=.20, 
+            Commodity=18, 
+            other=.32
+            )
 
 # Instrument class that gathers data from the FIRE regulated json file
 class Instrument:
@@ -68,7 +123,7 @@ class K_TCD:
     def get_duration(self):
         duration = 1.
 
-        if "bond" not in self.asset_leg.type or "index" not in self.asset_leg.type:
+        if "CR" == factor[asset_classes[self.asset_leg.type]] or "IR" == factor[asset_classes[self.asset_leg.type]]:
             duration = (1 - math.exp(-.05 * self.asset_leg.time_to_maturity)) / .05
 
         return duration
@@ -87,19 +142,8 @@ class K_TCD:
         return  notional_amount * duration * supervisory_delta
 
     def get_supervisory_factor(self):
-        if "swap" in self.asset_leg.type:
-            return .005
-        elif "fx" in self.asset_leg.type:
-            return .04
-        elif "bond" in self.asset_leg.type:
-            return .01
-        elif "index" in self.asset_leg.type:
-            return .2
-        elif "commodity" in self.asset_leg.type:
-            return .18
-        else:
-            return .32
 
+        return factor[asset_classes[self.asset_leg.type]]
 
     def get_potential_future_exposure(self):
         # See Article 29: Potential Future Exposure
@@ -109,23 +153,33 @@ class K_TCD:
         return self.effective_notional * self.supervisory_factor
 
     def get_collateral(self):
-        return abs(self.cash_leg.balance + self.asset_leg.mtm_dirty) * .00707
+        # Article 30 (2b):
+        # The value of collateral for repurchase agreements is determined as the sum of the CMV of the security leg
+        # and the net amount of collateral posted or received by the investment firm. 
+        volatility_adjustment = .00707
+        if 1 < self.asset_leg.time_to_maturity <= 5:
+            volatility_adjustment = .02121
+        else:
+            volatility_adjustment = .04243
+
+        return (self.asset_leg.mtm_dirty + self.cash_leg.balance) * volatility_adjustment
 
     def get_exposure_value(self):
         replacement_cost = self.get_replacement_cost()
         potential_future_exposure = self.get_potential_future_exposure()
         collateral = self.get_collateral()
 
-        return max(0, replacement_cost + potential_future_exposure - collateral) 
+        return max(0., replacement_cost + potential_future_exposure - collateral) 
 
     def get_risk_factor(self):
-        if "govt" in [self.asset_leg.customer_type, self.cash_leg.customer_type] or "bond" in [self.asset_leg.customer_type, self.cash_leg.customer_type]:
+        if "govt" in self.asset_leg.issuer_type or "government" in self.asset_leg.issuer_type:
             return .016
         else:
             return .08
 
     def get_credit_valuation_adjustment(self):
-        return 1.                                   # SFTs have CVA equal to 1 as specified in Article 32 d.
+        # SFTs have CVA equal to 1 as specified in Article 32 d.
+        return 1.
 
 
 
@@ -138,7 +192,7 @@ class K_TCD:
 
 
 def main():
-
+    
     # argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--file', default='data', nargs='?',

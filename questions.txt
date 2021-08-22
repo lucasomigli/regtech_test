@@ -1,0 +1,33 @@
+-> In 200 words or less, explain what you think the EBA is trying to achieve with this regulation, pros/cons
+of this approach and what (if any) is the alternative?
+EBA has published recently a new framework to follow for investment firms. This has the main target
+to consolidate the current market background by providing more stability and a solid regulatory framework 
+that takes into account the entire scope of market partecipants and therefore fixes issues with previous models.
+In essence, small and medium firms are no longer subject to the more strict CRD/CRR framework. On the other hand,
+firms with a consolidated BS of more than 30 millions will follow stricter rules. K-factors are introduced,
+which lay the foundational structure for calculating new capital requirements. 
+Ultimately, the investment firm directive brings primarily major changes to small to medium firms. This is 
+intended for diminishing the level of prudence for such firms and invigorate their market activity and growth.
+On the other hand, the new regulation does add several layers of complexity which intensifies the need of
+automation and a solid technical framework for inacting such regulatory measures on the day to day basis.
+
+-> Explain, in simple terms, what are the K-Factors?
+K factors are in general terms quantitative indicators that allow clients, market participants or the firm 
+itself to understand credit risks associated with a potential investment. Due to the recent crises in the last
+two decades these new implementations allow for a stricter measurement of credit risk. 
+K-factors are then subgrouped according to their main measuring area and are calculated as follow:
+
+- risk-to-client: K-AUM(Assets Under Management) + 
+K-CMH(Client Money Held) + K-ASA(Assets Safeguarded and Administered) + K-COH (Client Orders Handled)
+
+- risk-to-market: max(K-NPR (Net Position Risk), K-CMG (Clearing Member Guarantee))
+
+- risk-to-firm: K-TCD (Trading Counterparty Default risk) + K-CON(Daily Trading Flow) + K-DTF(Concentration Risk)
+
+
+-> Which leg in a SFT create credit risk? The asset or the liability leg?
+The liability leg creates credit risk. Essentially, the asset is sold to the party in exchange of a 
+notional amount and then bought back by the original seller at the settlement date. Hence, 
+if the repo seller is not able to buy back the asset at settlement he wil default on his obligation.
+Even tough the original buyer can keep the asset or security, this might have lost its value due to market 
+price fluctuations. 

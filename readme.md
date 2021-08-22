@@ -25,17 +25,17 @@ The Instrument Class will load the JSON files and store values in a class object
 
     class K_TCD(asset_leg, cash_leg):
         initialize()                        # Initializes the class and loads both legs of the reverse repo and gets EV, RF and CVA. 
-        get_replacement_cost()              # 
-        get_notional_amount()               # 
-        get_duration()                      # 
-        get_supervisory_delta()             # 
-        get_effective_notional()            #
-        get_supervisory_factor()            #
-        get_potential_future_exposure()     #
-        get_collateral()                    #
-        get_exposure_value()                #
-        get_risk_factor()                   #
-        get_credit_valuation_adjustment()   #
+        get_replacement_cost()              # calculates the replacement cost from the two legs
+        get_notional_amount()               # gets the notional amount as float. In a reverse repo this is the asset leg balance  
+        get_duration()                      # duration is stated as (1 - e^(-.05 * maturity) ) / .05 for credit and interest rate derivatives.
+        get_supervisory_delta()             # returns 1.0 as it is the default value for repo agreements
+        get_effective_notional()            # calculates the EN as notional * duration * supervisory delta
+        get_supervisory_factor()            # gets the relative superisory factor according to institution and time for settlement
+        get_potential_future_exposure()     # calculated as effective_notional * supervisory_factor
+        get_collateral()                    # Calculates the volatility adjustments as specified in the DOCS.
+        get_exposure_value()                # Max(0; replacement cost + potential future exposure – collateral)
+        get_risk_factor()                   # returns .016 for governmental issuers and .08 for all other cases.
+        get_credit_valuation_adjustment()   # SFTs have CVA equal to 1.0 as specified in Article 32 d.
 
 The K_TCD class will then take the instantiated Instruments and computes the necessary calculations abd store the result in self.value. 
 It calculates:
